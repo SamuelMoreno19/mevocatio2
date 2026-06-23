@@ -21,6 +21,24 @@ const transporter = nodemailer.createTransport({
 /* =========================
    FORGOT PASSWORD
 ========================= */
+
+/**
+ * @swagger
+ * /api/auth/forgot-password:
+ *   post:
+ *     summary: Envía correo de recuperación de contraseña
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email: { type: string }
+ *     responses:
+ *       200: { description: Correo enviado }
+ *       404: { description: Correo no existe }
+ */
 router.post("/forgot-password", async (req, res) => {
   const { email } = req.body;
 
@@ -74,6 +92,25 @@ router.post("/forgot-password", async (req, res) => {
 /* =========================
    RESET PASSWORD
 ========================= */
+
+/**
+ * @swagger
+ * /api/auth/reset-password:
+ *   post:
+ *     summary: Cambia la contraseña usando el token enviado por correo
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               token: { type: string }
+ *               newPassword: { type: string }
+ *     responses:
+ *       200: { description: Contraseña actualizada }
+ *       400: { description: Token inválido o expirado }
+ */
 router.post("/reset-password", async (req, res) => {
   const { token, newPassword } = req.body;
 
@@ -107,6 +144,26 @@ router.post("/reset-password", async (req, res) => {
 /* =========================
    REGISTER
 ========================= */
+
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Registra un nuevo usuario
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               email: { type: string }
+ *               password: { type: string }
+ *     responses:
+ *       200: { description: Usuario creado }
+ *       400: { description: Datos inválidos }
+ */
 router.post("/register", async (req, res) => {
   const { name, email, password } = req.body;
 
@@ -144,6 +201,26 @@ router.post("/register", async (req, res) => {
 /* =========================
    LOGIN
 ========================= */
+
+
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Inicia sesión y devuelve un token JWT
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email: { type: string }
+ *               password: { type: string }
+ *     responses:
+ *       200: { description: Login exitoso }
+ *       401: { description: Credenciales inválidas }
+ */
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 

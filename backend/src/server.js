@@ -1,29 +1,33 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-
-const authRoutes = require("./routes/auth");
-const { swaggerUi, specs } = require("./swagger"); 
+const { swaggerUi, specs } = require("./config/swagger");
+const authRoutes = require("./routes/auth.routes");
+const pool = require("./config/db");
 
 const app = express();
 
+/* ─── Middlewares globales ─── */
 app.use(cors());
 app.use(express.json());
 
+/* ─── Documentación Swagger ─── */
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
+
+/* ─── Rutas ─── */
 app.use("/api/auth", authRoutes);
 
-const PORT = 3001;
+/* ─── Inicio del servidor ─── */
+const PORT = process.env.PORT || 3001;
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-});
+app.listen(PORT, async () => {
+  console.log(`Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`Documentación en   http://localhost:${PORT}/api-docs`);
 
-const pool = require("./db");
-
-pool.query("SELECT NOW()", (err, res) => {
-  if (err) {
-    console.error("Error conectando a la DB:", err);
-  } else {
-    console.log("DB conectada:", res.rows);
+  try {
+    await pool.query("SELECT NOW()");
+    console.log("Base de datos conectada correctamente");
+  } catch (error) {
+    console.error("Error conectando a la base de datos:", error.message);
   }
-}); 
+});

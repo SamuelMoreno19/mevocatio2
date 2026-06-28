@@ -6,24 +6,121 @@ import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { usePublicRoute } from "@/hooks/useRouteGuard";
-import { validarPassword } from "@/lib/validarPassword";
 import ModalOlvidePassword from "@/components/ModalOlvidePassword";
 
+/* ─────────────────────────────────────────
+   VALIDACIONES
+───────────────────────────────────────── */
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_REGEX = /^(?=(?:.*\d){2,}).{7,}$/;
+
+const validarCamposLogin = ({ email, password }) => {
+  const errores = {};
+  if (!email.trim())                   errores.email    = "El email es obligatorio.";
+  else if (!EMAIL_REGEX.test(email))   errores.email    = "Ingresa un email válido.";
+  if (!password)                       errores.password = "La contraseña es obligatoria.";
+  return errores;
+};
+
+const validarCamposRegistro = ({ nombre, email, password }) => {
+  const errores = {};
+  if (!nombre.trim())                          errores.nombre   = "El nombre es obligatorio.";
+  else if (nombre.trim().length < 3)           errores.nombre   = "El nombre debe tener al menos 3 caracteres.";
+  if (!email.trim())                           errores.email    = "El email es obligatorio.";
+  else if (!EMAIL_REGEX.test(email))           errores.email    = "Ingresa un email válido.";
+  if (!password)                               errores.password = "La contraseña es obligatoria.";
+  else if (!PASSWORD_REGEX.test(password))     errores.password = "Mínimo 7 caracteres y al menos 2 números.";
+  return errores;
+};
+
+/* ─────────────────────────────────────────
+   COMPONENTE DE ERROR POR CAMPO
+───────────────────────────────────────── */
+function CampoError({ mensaje }) {
+  if (!mensaje) return null;
+  return (
+    <p className="text-red-500 text-[10px] font-black uppercase tracking-wide mt-1 ml-1 flex items-center gap-1">
+      <span>⚠</span> {mensaje}
+    </p>
+  );
+}
+
+/* ─────────────────────────────────────────
+   HOOK: PROTECCIÓN CONTRA INSPECCIÓN
+───────────────────────────────────────── */
+function useAntiInspeccion() {
+  useEffect(() => {
+    // Deshabilitar clic derecho
+    const bloquearContextMenu = (e) => e.preventDefault();
+
+    // Deshabilitar atajos de teclado de DevTools
+    const bloquearTeclado = (e) => {
+      const esForbidden =
+        e.key === "F12" ||
+        (e.ctrlKey && e.shiftKey && ["I", "J", "C", "U"].includes(e.key)) ||
+        (e.ctrlKey && e.key === "U");
+      if (esForbidden) e.preventDefault();
+    };
+
+    // Detectar si DevTools está abierto y redirigir
+    const detectarDevTools = setInterval(() => {
+      const umbral = 160;
+      const abierto =
+        window.outerWidth - window.innerWidth > umbral ||
+        window.outerHeight - window.innerHeight > umbral;
+      if (abierto) {
+        // Limpiar el DOM y redirigir al inicio
+        document.body.innerHTML = "";
+        window.location.replace("/");
+      }
+    }, 1000);
+
+    document.addEventListener("contextmenu", bloquearContextMenu);
+    document.addEventListener("keydown", bloquearTeclado);
+
+    return () => {
+      document.removeEventListener("contextmenu", bloquearContextMenu);
+      document.removeEventListener("keydown", bloquearTeclado);
+      clearInterval(detectarDevTools);
+    };
+  }, []);
+}
+
+/* ─────────────────────────────────────────
+   CONTENIDO DEL FORMULARIO
+───────────────────────────────────────── */
 function AuthContent() {
   const { login, register } = useAuth();
   const { loading } = usePublicRoute();
   const searchParams = useSearchParams();
 
-  const [esRegistro, setEsRegistro] = useState(false);
+  useAntiInspeccion();
+
+  const [esRegistro, setEsRegistro]       = useState(false);
   const [mostrarOlvido, setMostrarOlvido] = useState(false);
-  const [nombre, setNombre] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [enviando, setEnviando]           = useState(false);
+  const [nombre, setNombre]               = useState("");
+  const [email, setEmail]                 = useState("");
+  const [password, setPassword]           = useState("");
+  const [errores, setErrores]             = useState({});
+  const [errorGeneral, setErrorGeneral]   = useState("");
 
   useEffect(() => {
     setEsRegistro(searchParams.get("mode") === "signup");
   }, [searchParams]);
+
+  const limpiarFormulario = () => {
+    setNombre("");
+    setEmail("");
+    setPassword("");
+    setErrores({});
+    setErrorGeneral("");
+  };
+
+  const cambiarModo = (modoRegistro) => {
+    limpiarFormulario();
+    setEsRegistro(modoRegistro);
+  };
 
   if (loading) {
     return (
@@ -35,29 +132,56 @@ function AuthContent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
+    setErrorGeneral("");
 
-    if (esRegistro && !validarPassword(password)) {
-      setError("La contraseña debe tener mínimo 7 caracteres y al menos 2 números.");
+    // Validar campos según el modo
+    const erroresNuevos = esRegistro
+      ? validarCamposRegistro({ nombre, email, password })
+      : validarCamposLogin({ email, password });
+
+    if (Object.keys(erroresNuevos).length > 0) {
+      setErrores(erroresNuevos);
       return;
     }
+
+    setErrores({});
+    setEnviando(true);
 
     try {
       if (esRegistro) {
         await register(nombre, email, password);
-        alert("Usuario registrado correctamente");
+        limpiarFormulario();
         setEsRegistro(false);
+        setErrorGeneral(""); // limpio
+        // Mostrar éxito brevemente
+        setErrores({ exito: "¡Cuenta creada! Ahora inicia sesión." });
       } else {
         await login(email, password);
       }
     } catch (err) {
-      setError(err.message || "Ocurrió un error");
+      // Mensajes de error del backend humanizados
+      const msg = err.message || "";
+      if (msg.includes("Credenciales"))       setErrorGeneral("Email o contraseña incorrectos.");
+      else if (msg.includes("registrado"))    setErrorGeneral("Este email ya tiene una cuenta. Inicia sesión.");
+      else if (msg.includes("correo"))        setErrorGeneral("No encontramos una cuenta con ese email.");
+      else                                    setErrorGeneral(msg || "Ocurrió un error. Intenta de nuevo.");
+    } finally {
+      setEnviando(false);
     }
   };
 
+  // Clases de input — rojo si hay error, normal si no
+  const inputClass = (campo) =>
+    `w-full px-5 py-3.5 bg-slate-50 border rounded-xl outline-none transition-all font-bold text-slate-800 text-sm shadow-sm ${
+      errores[campo]
+        ? "border-red-400 focus:border-red-500 bg-red-50"
+        : "border-slate-200 focus:border-slate-900"
+    }`;
+
   return (
     <main className="min-h-screen flex flex-col lg:flex-row bg-white overflow-hidden">
-      {/* LADO IZQUIERDO */}
+
+      {/* ── LADO IZQUIERDO ── */}
       <div className="hidden lg:flex lg:w-1/2 relative bg-[#1e293b] justify-center border-r border-white/10 pt-20">
         <div className="absolute inset-0 opacity-10 pointer-events-none">
           <div className="absolute top-0 left-0 w-[50rem] h-[50rem] border-[60px] border-white rotate-45 -translate-x-1/2 -translate-y-1/2"></div>
@@ -86,7 +210,7 @@ function AuthContent() {
         </div>
       </div>
 
-      {/* FORMULARIO */}
+      {/* ── FORMULARIO ── */}
       <div className="flex-1 flex flex-col items-center justify-start pt-16 lg:pt-24 p-8 sm:p-12 bg-white relative overflow-y-auto">
         <Link
           href="/"
@@ -98,31 +222,38 @@ function AuthContent() {
         <div className="w-full max-w-md">
           <div className="mb-8 text-center lg:text-left">
             <h3 className="text-4xl font-black text-slate-900 mb-1 tracking-tighter uppercase">
-              {esRegistro ? "Registrate" : "Inicia Sesión"}
+              {esRegistro ? "Regístrate" : "Inicia Sesión"}
             </h3>
             <p className="text-slate-400 font-bold text-[10px] uppercase tracking-[0.2em]">
               Accede a MeVocatio
             </p>
           </div>
 
+          {/* Tabs */}
           <div className="flex border-b border-slate-100 mb-8">
             <button
               type="button"
-              onClick={() => { setEsRegistro(false); setError(""); }}
-              className={`flex-1 py-3 text-[10px] font-black tracking-[0.2em] transition-all border-b-2 ${!esRegistro ? "border-slate-900 text-slate-900" : "border-transparent text-slate-300"}`}
+              onClick={() => cambiarModo(false)}
+              className={`flex-1 py-3 text-[10px] font-black tracking-[0.2em] transition-all border-b-2 ${
+                !esRegistro ? "border-slate-900 text-slate-900" : "border-transparent text-slate-300"
+              }`}
             >
               INICIAR SESIÓN
             </button>
             <button
               type="button"
-              onClick={() => { setEsRegistro(true); setError(""); }}
-              className={`flex-1 py-3 text-[10px] font-black tracking-[0.2em] transition-all border-b-2 ${esRegistro ? "border-slate-900 text-slate-900" : "border-transparent text-slate-300"}`}
+              onClick={() => cambiarModo(true)}
+              className={`flex-1 py-3 text-[10px] font-black tracking-[0.2em] transition-all border-b-2 ${
+                esRegistro ? "border-slate-900 text-slate-900" : "border-transparent text-slate-300"
+              }`}
             >
               REGISTRATE
             </button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+
+            {/* Campo Nombre — solo en registro */}
             {esRegistro && (
               <div className="space-y-1">
                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">
@@ -130,43 +261,65 @@ function AuthContent() {
                 </label>
                 <input
                   value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
-                  className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-900 transition-all font-bold text-slate-800 text-sm shadow-sm"
+                  onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: "" })); }}
+                  className={inputClass("nombre")}
                   placeholder="JESUS TORRES"
                   type="text"
+                  autoComplete="name"
                 />
+                <CampoError mensaje={errores.nombre} />
               </div>
             )}
 
-            <div className="space-y-1">
-              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Email</label>
-              <input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-900 transition-all font-bold text-slate-800 text-sm shadow-sm"
-                placeholder="NAME@COMPANY.COM"
-                type="email"
-              />
-            </div>
-
+            {/* Campo Email */}
             <div className="space-y-1">
               <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                Contraseña (Mínimo 7 caracteres y 2 números)
+                Email
+              </label>
+              <input
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setErrores((p) => ({ ...p, email: "" })); }}
+                className={inputClass("email")}
+                placeholder="NAME@COMPANY.COM"
+                type="email"
+                autoComplete="email"
+              />
+              <CampoError mensaje={errores.email} />
+            </div>
+
+            {/* Campo Contraseña */}
+            <div className="space-y-1">
+              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">
+                Contraseña {esRegistro && "(mín. 7 caracteres y 2 números)"}
               </label>
               <input
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-900 transition-all font-bold text-slate-800 text-sm shadow-sm"
+                onChange={(e) => { setPassword(e.target.value); setErrores((p) => ({ ...p, password: "" })); }}
+                className={inputClass("password")}
                 placeholder="••••••••"
                 type="password"
+                autoComplete={esRegistro ? "new-password" : "current-password"}
               />
+              <CampoError mensaje={errores.password} />
             </div>
 
-            {/* Mensaje de error centralizado */}
-            {error && (
-              <p className="text-red-500 text-[11px] font-bold tracking-wide">{error}</p>
+            {/* Mensaje de éxito en registro */}
+            {errores.exito && (
+              <p className="text-green-600 text-[10px] font-black uppercase tracking-wide flex items-center gap-1">
+                <span>✓</span> {errores.exito}
+              </p>
             )}
 
+            {/* Error general del servidor */}
+            {errorGeneral && (
+              <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                <p className="text-red-600 text-[11px] font-black uppercase tracking-wide flex items-center gap-2">
+                  <span>⚠</span> {errorGeneral}
+                </p>
+              </div>
+            )}
+
+            {/* ¿Olvidaste tu contraseña? */}
             {!esRegistro && (
               <div className="flex justify-end pr-1">
                 <button
@@ -179,11 +332,25 @@ function AuthContent() {
               </div>
             )}
 
+            {/* Botón submit — controlado por React, no por el atributo disabled del HTML */}
             <button
               type="submit"
-              className="w-full py-4 bg-[#1e293b] hover:bg-slate-800 text-white font-black rounded-xl shadow-xl transition-all transform active:scale-[0.97] mt-4 uppercase text-[11px] tracking-[0.3em]"
+              onClick={(e) => {
+                // Segunda línea de defensa: si alguien quitó el disabled desde el HTML,
+                // React igual verifica el estado interno antes de continuar.
+                if (enviando) e.preventDefault();
+              }}
+              className={`w-full py-4 font-black rounded-xl shadow-xl transition-all transform mt-4 uppercase text-[11px] tracking-[0.3em] ${
+                enviando
+                  ? "bg-slate-400 text-slate-200 cursor-not-allowed"
+                  : "bg-[#1e293b] hover:bg-slate-800 text-white active:scale-[0.97]"
+              }`}
             >
-              {esRegistro ? "Crear Cuenta" : "Entrar al Portal"}
+              {enviando
+                ? "Procesando..."
+                : esRegistro
+                ? "Crear Cuenta"
+                : "Entrar al Portal"}
             </button>
           </form>
         </div>
@@ -194,6 +361,9 @@ function AuthContent() {
   );
 }
 
+/* ─────────────────────────────────────────
+   EXPORT CON SUSPENSE (requerido por useSearchParams)
+───────────────────────────────────────── */
 export default function AuthPage() {
   return (
     <Suspense

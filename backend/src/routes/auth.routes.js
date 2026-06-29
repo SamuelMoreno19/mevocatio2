@@ -2,6 +2,13 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/auth.controller");
 const { validarPassword } = require("../middlewares/validarPassword");
+const { loginLimiter, registerLimiter, forgotPasswordLimiter } = require("../middlewares/rateLimiter");
+const {
+  reglasRegister,
+  reglasLogin,
+  reglasForgotPassword,
+  reglasResetPassword,
+} = require("../middlewares/validarInputs");
 
 /**
  * @swagger
@@ -23,8 +30,9 @@ const { validarPassword } = require("../middlewares/validarPassword");
  *       201: { description: Usuario creado exitosamente }
  *       400: { description: Datos inválidos o contraseña débil }
  *       409: { description: El correo ya está registrado }
+ *       429: { description: Demasiados registros, intenta más tarde }
  */
-router.post("/register", validarPassword, authController.register);
+router.post("/register", registerLimiter, reglasRegister, validarPassword, authController.register);
 
 /**
  * @swagger
@@ -43,10 +51,11 @@ router.post("/register", validarPassword, authController.register);
  *               password: { type: string, example: "segura12" }
  *     responses:
  *       200: { description: Login exitoso, retorna token JWT }
- *       400: { description: Faltan campos obligatorios }
+ *       400: { description: Datos inválidos }
  *       401: { description: Credenciales inválidas }
+ *       429: { description: Demasiados intentos, intenta en 15 minutos }
  */
-router.post("/login", authController.login);
+router.post("/login", loginLimiter, reglasLogin, authController.login);
 
 /**
  * @swagger
@@ -64,10 +73,11 @@ router.post("/login", authController.login);
  *               email: { type: string, example: "juan@email.com" }
  *     responses:
  *       200: { description: Correo de recuperación enviado }
- *       400: { description: Email obligatorio }
+ *       400: { description: Email inválido }
  *       404: { description: El correo no está registrado }
+ *       429: { description: Demasiadas solicitudes }
  */
-router.post("/forgot-password", authController.forgotPassword);
+router.post("/forgot-password", forgotPasswordLimiter, reglasForgotPassword, authController.forgotPassword);
 
 /**
  * @swagger
@@ -86,8 +96,8 @@ router.post("/forgot-password", authController.forgotPassword);
  *               newPassword: { type: string, example: "nueva12" }
  *     responses:
  *       200: { description: Contraseña actualizada }
- *       400: { description: Token inválido, expirado, o contraseña débil }
+ *       400: { description: Token inválido, expirado o contraseña débil }
  */
-router.post("/reset-password", validarPassword, authController.resetPassword);
+router.post("/reset-password", reglasResetPassword, validarPassword, authController.resetPassword);
 
 module.exports = router;

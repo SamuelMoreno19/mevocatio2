@@ -6,10 +6,6 @@ const authService = require("../services/auth.service");
 const register = async (req, res) => {
   const { name, email, password } = req.body;
 
-  if (!name || !email || !password) {
-    return res.status(400).json({ error: "Faltan campos obligatorios: name, email, password" });
-  }
-
   try {
     const usuario = await authService.register(name, email, password);
     res.status(201).json(usuario);

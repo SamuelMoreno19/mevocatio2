@@ -4,88 +4,79 @@ import { useState } from "react";
 import Swal from "sweetalert2";
 import { useAuth } from "@/hooks/useAuth";
 
-/**
- * Modal para recuperar contraseña.
- * Recibe `onClose` para cerrarse desde el componente padre.
- */
 export default function ModalOlvidePassword({ onClose }) {
-  const [email, setEmail] = useState("");
   const { forgotPassword } = useAuth();
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
     try {
       await forgotPassword(email);
-      Swal.fire({
-        title: "¡Correo Enviado exitosamente!",
-        text: "Revisa la bandeja de entrada de tu correo.",
+      await Swal.fire({
         icon: "success",
-        iconColor: "#3492ba",
-        background: "#2d2d2d",
-        color: "#ffffff",
-        confirmButtonColor: "#1e293b",
-        confirmButtonText: "Entendido",
-        customClass: { popup: "rounded-2xl border border-slate-600" },
+        title: "¡Correo enviado!",
+        text: "Revisa tu bandeja de entrada para restablecer tu contraseña.",
       });
       onClose();
-      setEmail("");
-    } catch (error) {
-      Swal.fire({
-        title: "Hubo un error",
-        text: error.message || "No pudimos enviar el correo.",
+    } catch (err) {
+      await Swal.fire({
         icon: "error",
-        iconColor: "#ef4444",
-        background: "#2d2d2d",
-        color: "#ffffff",
-        confirmButtonColor: "#1e293b",
-        confirmButtonText: "Reintentar",
-        customClass: { popup: "rounded-2xl border border-slate-600" },
+        title: "Error",
+        text: err.message || "No se pudo enviar el correo",
       });
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-      <div
-        className="absolute inset-0 bg-[#1e293b]/80 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative bg-white w-full max-w-md p-8 rounded-2xl shadow-2xl border border-slate-200 animate-in zoom-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Modal */}
+      <div className="relative z-10 bg-white rounded-3xl shadow-2xl p-8 w-full max-w-sm mx-4 border border-slate-200">
+        {/* Close button */}
         <button
+          type="button"
           onClick={onClose}
-          className="absolute top-5 right-5 text-slate-400 hover:text-slate-900 transition-colors"
+          className="absolute top-4 right-5 text-slate-400 hover:text-slate-900 font-black text-lg transition-colors"
         >
           ✕
         </button>
 
         <div className="text-center mb-6">
-          <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tighter">
+          <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tighter italic">
             ¿Olvidaste tu contraseña?
-          </h4>
+          </h3>
           <p className="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-2">
-            Introduce tu email para recuperar el acceso
+            Te enviaremos un enlace de recuperación
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1">
             <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">
-              Email de recuperación
+              Email
             </label>
             <input
               required
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-900 transition-all font-bold text-slate-800 text-sm"
               placeholder="TU-EMAIL@EJEMPLO.COM"
+              className="w-full px-5 py-3.5 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-slate-900 transition-all font-bold text-slate-800 text-sm shadow-sm"
             />
           </div>
+
           <button
             type="submit"
-            className="w-full py-4 bg-[#1e293b] text-white font-black rounded-xl shadow-lg hover:bg-slate-800 transition-all uppercase text-[11px] tracking-[0.3em]"
+            disabled={loading}
+            className="w-full py-4 bg-[#1e293b] text-white font-black rounded-xl shadow-lg hover:bg-slate-800 transition-all uppercase text-[11px] tracking-[0.3em] active:scale-95 disabled:opacity-50 border border-slate-700"
           >
-            Enviar Enlace
+            {loading ? "Enviando..." : "Enviar Enlace"}
           </button>
         </form>
       </div>

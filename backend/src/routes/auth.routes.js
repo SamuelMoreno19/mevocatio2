@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/auth.controller");
-const { validarPassword } = require("../middlewares/validarPassword");
 const { loginLimiter, registerLimiter, forgotPasswordLimiter } = require("../middlewares/rateLimiter");
 const {
   reglasRegister,
@@ -32,7 +31,7 @@ const {
  *       409: { description: El correo ya está registrado }
  *       429: { description: Demasiados registros, intenta más tarde }
  */
-router.post("/register", registerLimiter, reglasRegister, validarPassword, authController.register);
+router.post("/register", registerLimiter, reglasRegister, authController.register);
 
 /**
  * @swagger
@@ -98,6 +97,6 @@ router.post("/forgot-password", forgotPasswordLimiter, reglasForgotPassword, aut
  *       200: { description: Contraseña actualizada }
  *       400: { description: Token inválido, expirado o contraseña débil }
  */
-router.post("/reset-password", reglasResetPassword, validarPassword, authController.resetPassword);
+router.post("/reset-password", reglasResetPassword, authController.resetPassword);
 
 module.exports = router;

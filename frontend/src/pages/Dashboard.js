@@ -13,7 +13,7 @@ import { useProtectedRoute } from "@/hooks/useRouteGuard";
 const PROFESSIONS = [
   { id: 1, title: "Ingeniería de Software", area: "Tecnología & Desarrollo", icon: <Code className="w-5 h-5" />, desc: "Crea soluciones digitales complejas y arquitectura de sistemas innovadores." },
   { id: 2, title: "Diseño de Producto", area: "Diseño & UX", icon: <Palette className="w-5 h-5" />, desc: "Diseña experiencias intuitivas que resuelven problemas reales de usuarios." },
-  { id: 3, title: "Ciencia de Datos", area: "Ciencia de Datos", icon: <BarChart3 className="w-5 h-5" />, desc: "Analiza patrones complejos para predecir tendencias y decisiones." },
+  { id: 3, title: "Ciencia de Datos", area: "Análisis de Datos", icon: <BarChart3 className="w-5 h-5" />, desc: "Analiza patrones complejos para predecir tendencias y decisiones." },
   { id: 4, title: "Arquitectura Cloud", area: "Infraestructura IT", icon: <Globe className="w-5 h-5" />, desc: "Diseña y gestiona soluciones escalables y seguras en la nube." },
   { id: 5, title: "Ciberseguridad", area: "Seguridad Digital", icon: <ShieldCheck className="w-5 h-5" />, desc: "Protege activos digitales contra amenazas y vulnerabilidades críticas." },
   { id: 6, title: "Desarrollo de IA", area: "Inteligencia Artificial", icon: <Cpu className="w-5 h-5" />, desc: "Desarrolla modelos de aprendizaje automático y redes neuronales avanzadas." },

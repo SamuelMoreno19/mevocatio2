@@ -144,6 +144,20 @@ function AuthContent() {
       return;
     }
 
+    // Segunda barrera: revalida los mismos campos justo antes de enviar,
+    // por si el valor fue inyectado directo en el DOM (vía inspeccionar)
+    // sin pasar por el onChange de React. No reemplaza la validación
+    // del backend, solo reduce manipulaciones triviales desde el cliente.
+    const erroresFinales = esRegistro
+      ? validarCamposRegistro({ nombre, email, password })
+      : validarCamposLogin({ email, password });
+
+    if (Object.keys(erroresFinales).length > 0) {
+      setErrores(erroresFinales);
+      setErrorGeneral("Revisa los datos del formulario antes de continuar.");
+      return;
+    }
+
     setErrores({});
     setEnviando(true);
 
@@ -164,7 +178,7 @@ function AuthContent() {
       if (msg.includes("Credenciales"))       setErrorGeneral("Email o contraseña incorrectos.");
       else if (msg.includes("registrado"))    setErrorGeneral("Este email ya tiene una cuenta. Inicia sesión.");
       else if (msg.includes("correo"))        setErrorGeneral("No encontramos una cuenta con ese email.");
-      else                                    setErrorGeneral(msg || "Ocurrió un error. Intenta de nuevo.");
+      else                                    setErrorGeneral(msg || "Ocurrió un error, intenta de nuevo.");
     } finally {
       setEnviando(false);
     }
@@ -261,11 +275,18 @@ function AuthContent() {
                 </label>
                 <input
                   value={nombre}
-                  onChange={(e) => { setNombre(e.target.value); setErrores((p) => ({ ...p, nombre: "" })); }}
+                  onChange={(e) => {
+                    const valor = e.target.value.slice(0, 60); // tope duro de longitud
+                    setNombre(valor);
+                    setErrores((p) => ({ ...p, nombre: "" }));
+                  }}
                   className={inputClass("nombre")}
                   placeholder="JESUS TORRES"
                   type="text"
                   autoComplete="name"
+                  minLength={3}
+                  maxLength={60}
+                  required
                 />
                 <CampoError mensaje={errores.nombre} />
               </div>
@@ -294,11 +315,18 @@ function AuthContent() {
               </label>
               <input
                 value={password}
-                onChange={(e) => { setPassword(e.target.value); setErrores((p) => ({ ...p, password: "" })); }}
+                onChange={(e) => {
+                  const valor = e.target.value.slice(0, 64); // tope duro de longitud
+                  setPassword(valor);
+                  setErrores((p) => ({ ...p, password: "" }));
+                }}
                 className={inputClass("password")}
                 placeholder="••••••••"
                 type="password"
                 autoComplete={esRegistro ? "new-password" : "current-password"}
+                minLength={esRegistro ? 7 : undefined}
+                maxLength={64}
+                required
               />
               <CampoError mensaje={errores.password} />
             </div>

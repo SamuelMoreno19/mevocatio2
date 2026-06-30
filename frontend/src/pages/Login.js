@@ -12,7 +12,8 @@ import ModalOlvidePassword from "@/components/ModalOlvidePassword";
    VALIDACIONES
 ───────────────────────────────────────── */
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_REGEX = /^(?=(?:.*\d){2,}).{7,}$/;
+const NOMBRE_REGEX = /^[A-Za-zÁÉÍÓÚÑáéíóúñÜü\s]+$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z\d\s]).{8,}$/;
 
 const validarCamposLogin = ({ email, password }) => {
   const errores = {};
@@ -26,10 +27,11 @@ const validarCamposRegistro = ({ nombre, email, password }) => {
   const errores = {};
   if (!nombre.trim())                          errores.nombre   = "El nombre es obligatorio.";
   else if (nombre.trim().length < 3)           errores.nombre   = "El nombre debe tener al menos 3 caracteres.";
+  else if (!NOMBRE_REGEX.test(nombre.trim()))  errores.nombre   = "El nombre solo puede contener letras y espacios.";
   if (!email.trim())                           errores.email    = "El email es obligatorio.";
   else if (!EMAIL_REGEX.test(email))           errores.email    = "Ingresa un email válido.";
   if (!password)                               errores.password = "La contraseña es obligatoria.";
-  else if (!PASSWORD_REGEX.test(password))     errores.password = "Mínimo 7 caracteres y al menos 2 números.";
+  else if (!PASSWORD_REGEX.test(password))     errores.password = "Mínimo 8 caracteres, mayúscula, minúscula, número y carácter especial.";
   return errores;
 };
 
@@ -102,6 +104,7 @@ function AuthContent() {
   const [nombre, setNombre]               = useState("");
   const [email, setEmail]                 = useState("");
   const [password, setPassword]           = useState("");
+  const [mostrarPassword, setMostrarPassword] = useState(false);
   const [errores, setErrores]             = useState({});
   const [errorGeneral, setErrorGeneral]   = useState("");
 
@@ -113,6 +116,7 @@ function AuthContent() {
     setNombre("");
     setEmail("");
     setPassword("");
+    setMostrarPassword(false);
     setErrores({});
     setErrorGeneral("");
   };
@@ -311,23 +315,46 @@ function AuthContent() {
             {/* Campo Contraseña */}
             <div className="space-y-1">
               <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">
-                Contraseña {esRegistro && "(mín. 7 caracteres y 2 números)"}
+                Contraseña {esRegistro && "(8+ caracteres, mayúscula, minúscula, número y símbolo)"}
               </label>
-              <input
-                value={password}
-                onChange={(e) => {
-                  const valor = e.target.value.slice(0, 64); // tope duro de longitud
-                  setPassword(valor);
-                  setErrores((p) => ({ ...p, password: "" }));
-                }}
-                className={inputClass("password")}
-                placeholder="••••••••"
-                type="password"
-                autoComplete={esRegistro ? "new-password" : "current-password"}
-                minLength={esRegistro ? 7 : undefined}
-                maxLength={64}
-                required
-              />
+              <div className="relative">
+                <input
+                  value={password}
+                  onChange={(e) => {
+                    const valor = e.target.value.slice(0, 64); // tope duro de longitud
+                    setPassword(valor);
+                    setErrores((p) => ({ ...p, password: "" }));
+                  }}
+                  className={`${inputClass("password")} pr-12`}
+                  placeholder="••••••••"
+                  type={mostrarPassword ? "text" : "password"}
+                  autoComplete={esRegistro ? "new-password" : "current-password"}
+                  minLength={esRegistro ? 8 : undefined}
+                  maxLength={64}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setMostrarPassword((v) => !v)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 transition-colors p-1"
+                  aria-label={mostrarPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  tabIndex={-1}
+                >
+                  {mostrarPassword ? (
+                    /* Ojo tachado (ocultar) */
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-10-8-10-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 10 8 10 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+                      <line x1="1" y1="1" x2="23" y2="23"/>
+                    </svg>
+                  ) : (
+                    /* Ojo abierto (mostrar) */
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                      <circle cx="12" cy="12" r="3"/>
+                    </svg>
+                  )}
+                </button>
+              </div>
               <CampoError mensaje={errores.password} />
             </div>
 

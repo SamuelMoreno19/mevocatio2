@@ -43,35 +43,6 @@ export default function VocacionDetalle() {
 
   return (
     <div className="min-h-screen bg-[#e5e7eb] text-slate-800 font-sans flex">
-      
-      {/* Sidebar Izquierdo: Adaptado con tu azul oscuro principal */}
-      <aside className="w-64 bg-[#1e293b] p-6 hidden md:flex flex-col justify-between shrink-0 shadow-2xl">
-        <div>
-          <div className="mb-10 px-2 border-b border-slate-600/30 pb-4">
-            <h2 className="text-xl font-black tracking-tight text-white">MeVocatio</h2>
-            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest block mt-0.5">Portal Ejecutivo</span>
-          </div>
-
-          <nav className="space-y-1">
-            <button onClick={() => router.push("/dashboard")} className="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:bg-slate-700/40">
-              <LayoutDashboard className="w-4 h-4" /> Dashboard
-            </button>
-            <button className="w-full flex items-center gap-3 px-4 py-3 bg-white/10 text-white border-l-4 border-slate-300 rounded-r-xl text-xs font-bold uppercase tracking-wider transition-all">
-              <Compass className="w-4 h-4 text-slate-200" /> Trayectoria
-            </button>
-            <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:bg-slate-700/40">
-              <Award className="w-4 h-4" /> Insignias
-            </button>
-            <button className="w-full flex items-center gap-3 px-4 py-3 text-slate-300 hover:text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-all hover:bg-slate-700/40">
-              <Settings className="w-4 h-4" /> Configuración
-            </button>
-          </nav>
-        </div>
-
-        <button onClick={() => router.push("/dashboard")} className="flex items-center gap-2 px-4 py-3 text-slate-400 hover:text-red-400 text-xs font-bold uppercase tracking-widest transition-colors rounded-xl hover:bg-red-500/10">
-          <ArrowLeft className="w-4 h-4" /> Volver
-        </button>
-      </aside>
 
       {/* Contenedor Principal de la Vista (Fondo gris premium) */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto w-full pt-32">
@@ -150,6 +121,7 @@ export default function VocacionDetalle() {
           </div>
 
           <button 
+            onClick={() => router.push(`/diagnostico/${vocacion.id}`)}
             className="w-full sm:w-auto px-6 py-3.5 bg-white text-[#1e293b] hover:bg-slate-100 font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2 shrink-0"
           >
             Iniciar Diagnóstico

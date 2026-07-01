@@ -93,7 +93,7 @@ export default function RootLayout({ children }) {
                   width={120}
                   height={120}
                   priority
-                  className="object-contain scale-[3.8] mix-blend-multiply -ml-0.5 translate-y-[2px]"
+                    className="object-contain scale-[2.2] mix-blend-multiply translate-y-[1px]"
                 />
               </div>
             </Link>

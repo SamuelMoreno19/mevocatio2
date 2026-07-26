@@ -1,8 +1,8 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { 
-  ArrowLeft, BrainCircuit, Target, Lightbulb, 
+import {
+  ArrowLeft, BrainCircuit, Target, Lightbulb,
   Briefcase, Compass, Award, Settings, LayoutDashboard
 } from "lucide-react";
 
@@ -31,8 +31,8 @@ export default function VocacionDetalle() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-[#e5e7eb] text-[#1e293b] font-sans">
         <p className="text-slate-500 font-bold text-sm uppercase tracking-widest">Vocación no encontrada</p>
-        <button 
-          onClick={() => router.push("/dashboard")} 
+        <button
+          onClick={() => router.push("/dashboard")}
           className="mt-4 px-6 py-2.5 bg-[#1e293b] text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-all uppercase tracking-widest"
         >
           Volver al Dashboard
@@ -46,7 +46,13 @@ export default function VocacionDetalle() {
 
       {/* Contenedor Principal de la Vista (Fondo gris premium) */}
       <main className="flex-1 p-6 md:p-10 overflow-y-auto max-w-5xl mx-auto w-full pt-32">
-        
+
+        <button
+          onClick={() => router.push("/dashboard")}
+          className="mb-6 flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#1e293b] uppercase tracking-widest transition-all cursor-pointer"
+        >
+          <ArrowLeft className="w-4 h-4" /> Volver al Dashboard
+        </button>
         {/* Header Superior Dinámico */}
         <header className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-300 pb-6">
           <div>
@@ -57,7 +63,7 @@ export default function VocacionDetalle() {
               {vocacion.title}
             </h1>
           </div>
-          
+
           <div className="bg-[#1e293b] border border-slate-600 text-white px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider shadow-md">
             Ruta Activa
           </div>
@@ -73,7 +79,7 @@ export default function VocacionDetalle() {
 
         {/* Grid de Paneles Informativos (Tarjetas blancas limpias) */}
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          
+
           {/* Panel Izquierdo: Competencias Clave */}
           <div className="bg-white border border-slate-200 p-6 rounded-2xl flex flex-col justify-between shadow-sm">
             <div>
@@ -120,7 +126,7 @@ export default function VocacionDetalle() {
             </div>
           </div>
 
-          <button 
+          <button
             onClick={() => router.push(`/diagnostico/${vocacion.id}`)}
             className="w-full sm:w-auto px-6 py-3.5 bg-white text-[#1e293b] hover:bg-slate-100 font-extrabold text-xs uppercase tracking-widest rounded-xl transition-all shadow-md active:scale-95 cursor-pointer flex items-center justify-center gap-2 shrink-0"
           >

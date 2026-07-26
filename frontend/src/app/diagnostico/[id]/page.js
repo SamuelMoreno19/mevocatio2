@@ -107,11 +107,10 @@ export default function Diagnostico() {
     ? Math.round((puntajeTotal / puntajeMaximo) * 100)
     : 0;
 
-  const nivelTexto =
-    compatibilidad >= 80 ? "Compatibilidad Excelente" :
-    compatibilidad >= 60 ? "Compatibilidad Alta" :
-    compatibilidad >= 40 ? "Compatibilidad Moderada" :
-    "Compatibilidad Baja";
+  const nivelSugerido =
+    compatibilidad >= 80 ? "Avanzado" :
+      compatibilidad >= 50 ? "Intermedio" :
+        "Principiante";
 
   return (
     <div className="min-h-screen bg-[#e5e7eb] text-slate-800 font-sans flex">
@@ -120,6 +119,14 @@ export default function Diagnostico() {
       <main className="max-w-4xl mx-auto w-full p-6 md:p-10 pt-32">
 
         <header className="mb-8 border-b border-slate-300 pb-6">
+
+          <button
+            onClick={() => router.push(`/vocacion/${vocacion.id}`)}
+            className="mb-4 flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-[#1e293b] uppercase tracking-widest transition-all cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4" /> Volver a la vocación
+          </button>
+
           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-1">
             {vocacion.area}
           </span>
@@ -207,10 +214,16 @@ export default function Diagnostico() {
                 <RotateCcw className="w-4 h-4" /> Repetir Diagnóstico
               </button>
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => router.push(`/recomendacion?vocacion=${encodeURIComponent(vocacion.title)}&nivel=${nivelSugerido}`)}
                 className="px-8 py-3.5 bg-[#1e293b] hover:bg-slate-800 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 shadow-md"
               >
-                <CheckCircle2 className="w-4 h-4" /> Finalizar y Volver
+                <Sparkles className="w-4 h-4" /> Ver Ruta de Aprendizaje
+              </button>
+              <button
+                onClick={() => router.push("/dashboard")}
+                className="px-6 py-3.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95"
+              >
+                <CheckCircle2 className="w-4 h-4" /> Volver al Dashboard
               </button>
             </div>
           </section>

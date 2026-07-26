@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const { swaggerUi, specs } = require("./config/swagger");
 const authRoutes = require("./routes/auth.routes");
+const recomendacionRoutes = require("./routes/recomendacion");
 const pool = require("./config/db");
 
 const app = express();
@@ -20,6 +21,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(specs));
 
 /* ─── Rutas ─── */
 app.use("/api/auth", authRoutes);
+app.use("/api/v1", recomendacionRoutes);
 
 /* ─── Ruta no encontrada ─── */
 app.use((req, res) => {

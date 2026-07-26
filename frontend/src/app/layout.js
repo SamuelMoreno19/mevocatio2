@@ -10,7 +10,8 @@ import {
   LayoutDashboard,
   Award,
   Settings,
-  BrainCircuit
+  BrainCircuit,
+  Compass
 } from "lucide-react";
 import NavbarProfile from "../components/NavbarProfile";
 
@@ -26,10 +27,12 @@ export default function RootLayout({ children }) {
   pathname.startsWith("/vocacion") ||
   pathname.startsWith("/configuracion") ||
   pathname.startsWith("/insignias") ||
-  pathname.startsWith("/diagnostico");
+  pathname.startsWith("/diagnostico") ||
+  pathname.startsWith("/recomendacion");
 
   const sideMenuLinks = [
     { href: "/dashboard", label: "Panel Principal", icon: LayoutDashboard },
+    { href: "/recomendacion", label: "Rutas de Aprendizaje", icon: Compass },
 
     ...(isDiagnostico
       ? [

@@ -14,7 +14,13 @@ export default function NavbarProfile() {
     const userName = "Samuel Moreno";
     const userRole = "Estudiante ADSO";
 
-    const isPrivateZone = pathname.startsWith("/dashboard") || pathname.startsWith("/vocacion");
+    const isPrivateZone =
+        pathname.startsWith("/dashboard") ||
+        pathname.startsWith("/vocacion") ||
+        pathname.startsWith("/diagnostico") ||
+        pathname.startsWith("/configuracion") ||
+        pathname.startsWith("/insignias") ||
+        pathname.startsWith("/recomendacion");
 
     useEffect(() => {
         const checkAuth = () => {
